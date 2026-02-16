@@ -1,0 +1,18 @@
+# Normaliza texto a LF en el repo (en Windows se puede checar-out como CRLF si así lo configuras)
+* text=auto eol=lf
+
+# Windows scripts
+*.bat text eol=crlf
+*.cmd text eol=crlf
+*.ps1 text eol=crlf
+
+# Si usas sh
+*.sh text eol=lf
+
+# Archivos que NO deben tocarse por eol
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.pdf binary
