@@ -18,16 +18,19 @@ Proyecto orientado a arquitectura SaaS escalable para gestión de barberías.
 
 ## 📦 Estructura del Proyecto
 
-pp/
-├── api/ # Rutas (endpoints)
-├── core/ # Utilidades y lógica compartida
-├── db/ # Configuración de base de datos
-├── models/ # Modelos SQLAlchemy
-├── schemas/ # Esquemas Pydantic
-├── services/ # Lógica de negocio
-└── main.py # Entry point FastAPI
+```bash
+app/
+├── api/         # Rutas (endpoints)
+├── core/        # Utilidades y lógica compartida
+├── db/          # Configuración de base de datos
+├── models/      # Modelos SQLAlchemy
+├── schemas/     # Esquemas Pydantic
+├── services/    # Lógica de negocio
+└── main.py      # Entry point FastAPI
 
-migrations/ # Versionado de base de datos (Alembic)
+migrations/      # Versionado de base de datos (Alembic)
+
 Dockerfile
 docker-compose.yml
 requirements.txt
+```
