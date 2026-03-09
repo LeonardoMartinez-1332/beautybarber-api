@@ -3,6 +3,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy import asc, desc
 from datetime import datetime, timedelta, date as date_type, time as time_type
 from typing import List
+from zoneinfo import ZoneInfo
 
 from app.core.time_utils import overlaps_time_ranges
 from app.core.time_utils import merge_availability_windows
@@ -11,6 +12,7 @@ from app.core.time_utils import merge_availability_windows
 from app.db.session import get_db
 from app.models.barber import Barber
 from app.models.service import Service
+from app.models.booking import Booking
 from app.models.barber_availability_rule import BarberAvailabilityRule
 from app.schemas.barber_availability import (
     AvailabilityRuleCreate,
@@ -268,6 +270,14 @@ def _generate_time_slots_for_window(
 
     return slots
 
+def _slot_overlaps_booking(
+    slot_start: datetime,
+    slot_end: datetime,
+    booking_start: datetime,
+    booking_end: datetime,
+) -> bool:
+    return slot_start < booking_end and booking_start < slot_end
+
 @router.get("/barbers/{barber_id}/availability/slots", response_model=AvailabilitySlotsOut)
 def get_slots(
     barber_id: int,
@@ -334,11 +344,27 @@ def get_slots(
             for r in rules
         ]
 
+    # rango completo del día para traer bookings confirmados
+    day_start = datetime.combine(target_date, time_type.min)
+    day_end = datetime.combine(target_date, time_type.max)
+
+    bookings = (
+        db.query(Booking)
+        .filter(
+            Booking.barber_id == barber_id,
+            Booking.status == "confirmed",
+            Booking.start_datetime < day_end,
+            Booking.end_datetime > day_start,
+        )
+        .order_by(asc(Booking.start_datetime))
+        .all()
+    )
+
     items: list[SlotWindowOut] = []
     slots_flat: list[str] = []
 
     for w in windows:
-        window_slots = _generate_time_slots_for_window(
+        all_window_slots = _generate_time_slots_for_window(
             target_date=target_date,
             start_time=w["start_time"],
             end_time=w["end_time"],
@@ -346,17 +372,44 @@ def get_slots(
             service_duration_min=duration_min,
         )
 
+        available_slots: list[str] = []
+        unavailable_slots: list[str] = []
+
+        local_tz = ZoneInfo(barber.business.timezone or "America/Monterrey")
+
+        for slot_str in all_window_slots:
+            slot_start = datetime.combine(target_date, datetime.strptime(slot_str, "%H:%M").time())
+
+            # si viene service_id usamos su duración; si no, usamos el tamaño del slot
+            effective_duration = duration_min if duration_min is not None else w["slot_minutes"]
+            slot_end = slot_start + timedelta(minutes=effective_duration)
+
+            is_occupied = any(
+                _slot_overlaps_booking(
+                    slot_start,
+                    slot_end,
+                    booking.start_datetime.astimezone(local_tz).replace(tzinfo=None),
+                    booking.end_datetime.astimezone(local_tz).replace(tzinfo=None),
+                )
+                for booking in bookings
+            )
+
+            if is_occupied:
+                unavailable_slots.append(slot_str)
+            else:
+                available_slots.append(slot_str)
+
         items.append(
             SlotWindowOut(
                 start_time=w["start_time"].strftime("%H:%M"),
                 end_time=w["end_time"].strftime("%H:%M"),
                 slot_minutes=w["slot_minutes"],
-                slots=window_slots,
-                unavailable_slots=[],  # por ahora vacío, luego aquí bloqueamos por bookings/exceptions
+                slots=available_slots,
+                unavailable_slots=unavailable_slots,
             )
         )
 
-        slots_flat.extend(window_slots)
+        slots_flat.extend(available_slots)
 
     slots_unique_sorted = sorted(set(slots_flat))
 

@@ -4,6 +4,7 @@ from app.api.routes.health import router as health_router
 from app.api.routes.barbers import router as barbers_router
 from app.api.routes.services import router as services_router
 from app.api.routes.availability_rules import router as availability_rules_router
+from app.api.routes.booking import router as booking_router
 
 app = FastAPI(title="BeautyBarber API")
 
@@ -14,3 +15,4 @@ app.include_router(health_router, prefix="/api", tags=["health"])
 app.include_router(barbers_router, prefix="/api/barbers", tags=["barbers"])
 app.include_router(services_router, prefix="/api/services", tags=["services"])
 app.include_router(availability_rules_router, prefix="/api", tags=["availability"])
+app.include_router(booking_router, prefix="/api", tags=["bookings"])

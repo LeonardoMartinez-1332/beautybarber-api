@@ -36,3 +36,9 @@ class Barber(Base):
         cascade="all, delete-orphan",
         lazy="selectin",
     )
+
+    bookings = relationship(
+        "Booking", 
+        back_populates="barber", 
+        cascade="all, delete-orphan"
+    )
