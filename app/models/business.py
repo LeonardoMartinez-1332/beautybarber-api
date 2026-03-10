@@ -41,3 +41,17 @@ class Business(Base):
         cascade="all, delete-orphan",
         lazy="selectin",
     )
+
+    staff = relationship(
+    "Staff",
+    back_populates="business",
+    cascade="all, delete-orphan",
+    lazy="selectin",
+    )
+
+    beauty_services = relationship(
+    "BeautyService",
+    back_populates="business",
+    cascade="all, delete-orphan",
+    lazy="selectin",
+    )
