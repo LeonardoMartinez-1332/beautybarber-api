@@ -9,3 +9,4 @@ from app.models.beauty_service import BeautyService
 from app.models.staff_service import StaffService
 from app.models.staff_availability_rule import StaffAvailabilityRule
 from app.models.beauty_booking import BeautyBooking
+from app.models.user import User

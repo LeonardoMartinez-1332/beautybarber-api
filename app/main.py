@@ -11,6 +11,7 @@ from app.api.routes.staff_services import router as staff_services_router
 from app.api.routes.staff_availability_rules import router as staff_availability_router
 from app.api.routes.beauty_slots import router as beauty_slots_router
 from app.api.routes.beauty_bookings import router as beauty_bookings_router
+from app.api.routes.auth import router as auth_router
 
 app = FastAPI(title="BeautyBarber API")
 
@@ -28,3 +29,4 @@ app.include_router(staff_services_router, prefix="/api", tags=["staff_services"]
 app.include_router(staff_availability_router, prefix="/api", tags=["staff availability"])
 app.include_router(beauty_slots_router, prefix="/api", tags=["beauty_slots"])
 app.include_router(beauty_bookings_router, prefix="/api", tags=["beauty_bookings"])
+app.include_router(auth_router, prefix="/api", tags=["auth"])
